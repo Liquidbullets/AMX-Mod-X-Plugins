@@ -6,7 +6,7 @@
 new g_szTargetname[33]
 
 public plugin_init() {
-	register_plugin("deathrun_fixes1","0.0.3","Firippu")
+	register_plugin("deathrun_fixes1","0.0.4","Firippu")
 
 	new szMapName[33]
 	get_mapname(szMapName,32)
@@ -32,6 +32,8 @@ public plugin_init() {
 	} else if(equali(szMapName,"deathrun_forest")) {
 		remove_entity(find_ent_by_model(-1,"func_water","*143"))
 		fnCreateTriggerHurt("100",Float:{-1664.0,-704.0,-272.0},Float:{-1472.0,-256.0,-260.0})
+	} else if(equali(szMapName,"deathrun_forest2_final")) {
+		fnCreateTriggerPush("250","0 -90 0",Float:{784.0,1072.0,16.0},Float:{1568.0,1136.0,160.0})
 	}
 }
 
