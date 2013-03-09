@@ -38,7 +38,8 @@ public plugin_init() {
 	register_clcmd("say /respawn","cmdRespawn")
 
 	register_event("DeathMsg","fwdPlayerKilled","a")
-	RegisterHam(Ham_Spawn,"player","fwdPlayerSpawn",1)
+
+	register_clcmd("joinclass","clcmd_joinclass")
 
 	new iEntity
 	if((iEntity=create_entity("info_target"))) {
@@ -50,6 +51,16 @@ public plugin_init() {
 
 public client_disconnect(iPlayer) {
 	g_bPlayerQueued[iPlayer]=false
+}
+
+public clcmd_joinclass(iPlayer) {
+	set_task(1.0,"checkifstilldead",iPlayer)
+}
+
+public checkifstilldead(iPlayer) {
+	if(!is_user_alive(iPlayer)) {
+		set_task(1.0,"cmdRespawn",iPlayer)
+	}
 }
 
 public cmdRespawn(iPlayer) {
