@@ -1,0 +1,17 @@
+Hello, my name is hib and this is a modification of Emp`s 1.2.3RC2.
+This project has taken me almost a year or so to test skills out and make the pokemod not too overpowered.
+I altered the cooldowns and a couple other things.
+Feel free to contact me if you have any questions regarding installation and what not.
+Add me via steam @ Lobopack23.
+
+*Regarding my season 3, that will start being given out by donations, since i've taken my time to work on that as well*
+I'm not really a coder, but a modifier of code. I know a few things but im still learning.
+Anyways have fun and hope you like my modifications. (Note: Please do not claim this modification as your own, since i have worked hard and given credits to emp` for his original mod)
+
+Credits to:
+Emp` (original creater of pokemod)
+STeaK243 (for helping me start with modifying actual skills after he redid a couple)
+adamisk aka Re-Action (for supporting me on my pokemod project)
+the players of my pokemod (The Official Season 2 and Season 3)
+The Risen Chaos Community (www.risenchaos.com)
+Liniius (for being my assistant in coding new skills for season 3)

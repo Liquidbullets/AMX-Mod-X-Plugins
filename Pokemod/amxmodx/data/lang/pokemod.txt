@@ -1,0 +1,258 @@
+[en]
+POKEMOD_LANGVERSION = hib version
+POKEMOD_POKEMON = Pokemon
+POKEMOD_START = Starting PokeMod. Initial Start = %d
+POKEMOD_LOADED = PokeMod has been Loaded.
+POKEMOD_NOTACTIVE = PokeMod is not activated.
+POKEMOD_DISABLED = PokeMod has been disabled.
+POKEMOD_SKILLSDISABLED = PokeMod skills have been disabled.
+POKEMOD_MISSINGFILE = One file required for PokeMod not found. Pausing PokeMod.
+POKEMOD_MISSINGFILES = %d files required for PokeMod not found. Pausing PokeMod.
+POKEMOD_FILENOTFOUND = File %s Not Found In Server
+POKEMOD_RESOURCES = Not enough resources available to run PokeMod. Try a different map or less plugins.
+POKEMOD_FINALSAVES = Making final saves before plugin unloads.
+
+POKEMOD_SKILLDISABLED = Skill is disabled.
+POKEMOD_SKILLATTACK = when you attack someone
+POKEMOD_SKILLBIND = when you press +pokeskill
+POKEMOD_SKILLTOUCH = when you touch someone
+POKEMOD_SKILLDAMAGED = when you are damaged
+POKEMOD_SKILLSECOND = every second
+POKEMOD_SKILLSPAWN = when you are spawned
+POKEMOD_SKILLDEATH = when you die
+POKEMOD_SKILLPATTACK = when you attack someone with a pokemon skill
+POKEMOD_SKILLPDAMAGED = when you are damaged with a pokemon skill
+POKEMOD_SKILLLOOK = when you look at someone
+POKEMOD_SKILLSPEED = when you change weapons
+POKEMOD_SKILLSTATUS = when you change status
+POKEMOD_ADMINONLY = Admin Only
+POKEMOD_SKILLAUTO = %s cannot be manually activated.
+POKEMOD_SKILLSPAM = Stop trying to spam PokeMod skills.
+POKEMOD_SKILLDIS = This skill has been disabled.
+POKEMOD_SKILLASLEEP = You cannot use skills while you are asleep.
+POKEMOD_SKILLDEAD = This skill cannot be used while you are dead.
+POKEMOD_SKILLADMIN = This skill is for admins only.
+POKEMOD_SKILLFREEZE = You cannot use skills during freeze time.
+POKEMOD_SKILLVIP = VIPs are not allowed to use pokemon skills.
+POKEMOD_SKILLCOM = Commanders are not allowed to use pokemon skills.
+
+POKEMOD_MULTUSERS = Multiple users with that name found.
+POKEMOD_NOUSERTEAM = No user/team found.
+POKEMOD_NOPOKESELECT = Invalid pokemon selection.
+POKEMOD_NOPOKE = Invalid Pokemon.
+POKEMOD_NOPOKE1 = Invalid first pokemon.
+POKEMOD_NOPOKE2 = Invalid second pokemon.
+POKEMOD_NOPOKEITEM = Invalid Pokemon/Item.
+POKEMOD_NOITEM = Invalid Item.
+POKEMOD_NOSKILL = Invalid Skill.
+POKEMOD_CURPOKE = current pokemon
+POKEMOD_NOPLAYER = Invalid Player. Check spelling and don't use spaces.
+
+POKEMOD_ADMINARGS = Too many arguments supplied. Do not use a space in the name.
+POKEMOD_ADMINNAME = You only need to put in a partial name to use this command.
+POKEMOD_NOACCESS = You have no access to that command.
+
+POKEMOD_BOTBUY = %s (RADIO): Bought %d %s.
+POKEMOD_BOTGO = %s (RADIO): Go %s!
+
+POKEMOD_CHECKC4 = You cannot do this while holding a C4.
+POKEMOD_CHECKSKY = You cannot do this while aiming at the sky.
+POKEMOD_CHECKHP = This server's max HP is %d.
+POKEMOD_CHECKAP = This server's max AP is %d.
+POKEMOD_CATCHROOM = You already have %d pokemon. Release some into the world to catch more.
+POKEMOD_CATCHAGAIN = You caught a %s but decided to let it go because you already had one.
+
+POKEMOD_UNEVOLVE = %s, %s has reverted to a %s.
+POKEMOD_EVOLVE = Congratulations %s! %s has evolved into %s.
+POKEMOD_GIVEITEM = You gave %s 1 %s.
+POKEMOD_FAILGIVE = %s took the %s and ate it.
+POKEMOD_NOWANT = %s does not like the %s.
+POKEMOD_TRADEGROWL = %s growls at you.
+POKEMOD_TRADEODD = %s looks at you oddly.
+POKEMOD_TRADESMILE = %s smiles at you.
+POKEMOD_TRADELIKE = %s likes you.
+POKEMOD_TRADEJUMP = %s jumps on you.
+
+POKEMOD_NOOAKBUY = You are not close enough to Oak or a buyzone.
+POKEMOD_NOOAK = You are not close enough to Oak.
+POKEMOD_NOBUYITEM = Unable to buy that item.
+POKEMOD_MAXITEMS = You have reached the max amount of items you can buy.
+POKEMOD_MAXITEM = You have reached the max amount of this item that you can buy.
+POKEMOD_MOREITEMS = You can only buy %d more items.
+POKEMOD_MOREITEM = You can only buy %d more of this item.
+POKEMOD_ADMINBUY = Only Admins may purchase this!
+POKEMOD_ITEMDIS = This item is disabled
+POKEMOD_NOFUNDS = You have insufficient funds!
+POKEMOD_ITEMPACK = You bought %d %s!
+POKEMOD_POKEDIS = This pokemon is disabled
+POKEMOD_BUYPOKE = You bought a level 1 %s.
+POKEMOD_MAXBUY = This server limits you to buy a max of %d items at a time.
+POKEMOD_MAXSELL = This server limits you to sell a max of %d items at a time.
+
+POKEMOD_NOGOOD = Something went wrong when giving a %s.
+POKEMOD_NOROOM = You have too many pokemon. Send one to Oak's PC or release one.
+POKEMOD_DUPLICATE = You already have a %s.
+
+POKEMOD_OAKNAME = Prof. Oak
+POKEMOD_OAKFOSSIL = Here you go! Your %s is now a %s!
+POKEMOD_ITEMTOOAK = You need to take your %s to Prof. Oak.
+POKEMOD_OAKTRADE = I traded 1 %s for 1 %s.
+POKEMOD_OAKPC = You need to be near Prof. Oak to use Oak's PC.
+POKEMOD_OAKFAR = You are too far away.
+POKEMOD_OAKRIDING = Sorry, but you can't be healed while riding something.
+POKEMOD_OAKHEALED = You are fully healed.
+POKEMOD_OAKCLOSEDEAD = You are not dead or close to a Prof. Oak.
+
+POKEMOD_ITEMS = Items
+POKEMOD_NOSTATUS = You do not have any status effects.
+POKEMOD_NOPOISON = You are not poisoned.
+POKEMOD_NOASLEEP = You are not asleep.
+POKEMOD_NOBURNT = You are not burnt.
+POKEMOD_NOFROZEN = You are not frozen.
+POKEMOD_NOPARA = You are not paralyzed.
+POKEMOD_BIKESTOP = You stopped riding your %s!
+POKEMOD_BIKESTART = You started riding your %s!
+POKEMOD_BALLAUTO = Pokeballs are automatically used when you kill someone.
+POKEMOD_STATAUTO = Stat items are used automatically.
+POKEMOD_USEITEM = You used 1 %s!
+POKEMOD_NOWAYOUT = You couldn't find a way out.
+POKEMOD_ITEMPICKUP = You picked up %d %s.
+POKEMOD_NOITEMNUM = You do not have %d %s.
+POKEMOD_SELLITEM = You sold %d %s for $%d
+POKEMOD_NODESC = No Description.
+POKEMOD_NOMOREITEMS = %s cannot have any more items.
+POKEMOD_NOMOREITEM = %s cannot have any more of that item.
+POKEMOD_RECIEVEITEM = %s gave you %d %s.
+POKEMOD_GAVEITEM = You gave %d %s to %s.
+POKEMOD_NOSHOP = Invalid Pokemart Shop.
+POKEMOD_NOPICKUP = You cannot pick up any of these items.
+
+POKEMOD_EXIT = Exit
+POKEMOD_STARTPOKE = Choose a Pokemon to start with:
+
+POKEMOD_NOSAVE = Server is not allowing saving.
+POKEMOD_SAVED = Your experience has been saved.
+
+POKEMOD_PCNAME = Oak's PC
+POKEMOD_PCSENT = You sent %s to Oak's PC.
+POKEMOD_PCNOACTIVE = You cannot send your active pokemon.
+POKEMOD_PCSENDHAVE = You do not have the pokemon trying to be sent.
+POKEMOD_PCSENDFAIL = Sending pokemon failed.
+POKEMOD_PCSENDROOM = You have too many pokemon in Oak's PC already.
+POKEMOD_PCSENDDUP = You cannot have 2 of the same pokemon in Oak's PC.
+POKEMOD_PCRET = You retrieved %s from Oak's PC.
+POKEMOD_PCRETHAVE = You do not have the pokemon trying to be retrieved.
+POKEMOD_PCRETFAIL = Retrieving pokemon failed.
+POKEMOD_PCRETROOM = You have too many pokemon out already.
+POKEMOD_PCRETDUP = You cannot take out 2 of the same pokemon.
+POKEMOD_NOPCPOKE = You do not have any pokemon in Oak's PC.
+POKEMOD_PCADDSENT = %s was sent to Oak's PC.
+
+POKEMOD_MENUMAIN = Poke Center
+POKEMOD_POKEMART = PokeMart
+POKEMOD_HEAL = Heal
+POKEMOD_POKEHELP = PokeHelp
+POKEMOD_POKEDEX = Pokedex
+POKEMOD_MENUSEND = Send to Oak's PC
+POKEMOD_MENURET = Retrieve from Oak's PC
+POKEMOD_MENUREL = Release
+POKEMOD_MENUGO = Go
+POKEMOD_MENUGIVEITEM = Give %s To
+POKEMOD_MENUYOURITEM = Your Items
+POKEMOD_SELLITEMS = Sell Your Items
+POKEMOD_PCRELEASE = Release Pokemon
+POKEMOD_PCSAVE = Save Data
+POKEMOD_PCCHANGE = Change Pokemon
+POKEMOD_PCSEND = Send Pokemon
+POKEMOD_PCRETRIEVE = Retrieve Pokemon
+POKEMOD_PCHUDUP = Move HUD Up
+POKEMOD_PCHUDDOWN = Move HUD Down
+POKEMOD_PCHIDEPARTY = Hide Active Party
+POKEMOD_PCSHOWPARTY = Show Active Party
+POKEMOD_WALK = Walking
+POKEMOD_RIDE = Riding
+POKEMOD_IADDPDAMAGE = Additional Pokedamage
+POKEMOD_IADDSPEED = Additional Speed
+POKEMOD_IADDHP = Additional HP
+POKEMOD_IADDARMOR = Additional Armor
+POKEMOD_IADDDAMAGE = Additional Damage
+POKEMOD_ICATCH = Catch Chance
+POKEMOD_IHEAL = Heals %d
+POKEMOD_POKEBASICS = PokeMod Basics
+POKEMOD_SKILLSLEARNED = Skills learned
+
+POKEMOD_CAUGHT = Congratulations %s! You caught a level %d %s.
+POKEMOD_CAUGHTWILD = Congratulations %s! You caught a wild level %d %s.
+POKEMOD_CATCHTELE = You have been teleported back to your spawn for capturing a %s.
+POKEMOD_CATCHTAKE = %s caught your %s. Go catch another pokemon!
+POKEMOD_WILDDIE = A wild %s has fainted.
+
+POKEMOD_STATPOISON = You poisoned an enemy
+POKEMOD_STATPOISONED = You have been poisoned
+POKEMOD_STATWAKE = You have woken up
+POKEMOD_STATBURN = You have been burnt by %s
+POKEMOD_STATFROZ = You are frozen
+POKEMOD_STATCONF = You have been confused
+POKEMOD_STATCONFD = You were confused to death.
+
+POKEMOD_SAVESPAM = You must wait %0.1f seconds before saving again.
+POKEMOD_MAXLEVEL = %s is already at the max level.
+POKEMOD_NEWLEVEL = %s is now level %d.
+POKEMOD_LEVELUP = Congratulations %s! %s is now level %d!
+POKEMOD_NEWHPRANK = Your max hp is now %d! Your PokeRank is: %d
+POKEMOD_NEWHP = Your max hp is now %d!
+POKEMOD_NEWRANK = Your PokeRank is: %d
+POKEMOD_NEWHPRANKL = Your max hp is now %d. Your PokeRank is: %d
+POKEMOD_NEWHPL = Your max hp is now %d.
+POKEMOD_LEVELDOWN = %s, %s is now level %d.
+POKEMOD_KILLMATE = You lost %d experience for killing a teamate.
+POKEMOD_CHANGEONCE = This server is only allowing you to change pokemon 1 time while you are alive.
+POKEMOD_CHANGEMORE = This server is only allowing you to change pokemon %d times while you are alive.
+POKEMOD_RELACTIVE = You cannot release your active pokemon.
+POKEMOD_RELONE = You can only release one pokemon at a time.
+POKEMOD_RELINIT = You have %.1f seconds to say /cancel to not release %s. Or say /finalrelease to release now.
+POKEMOD_RELREMIND = %s is going to be released in %.1f seconds. Say /cancel to cancel the release.
+POKEMOD_RELFINAL = %s has been successfully released.
+POKEMOD_NOGIVESPEC = You cannot give away your special pokemon.
+POKEMOD_GIVACTIVE = You cannot give away your active pokemon.
+POKEMOD_GAVE = %s gave you a %s.
+POKEMOD_GAVEOK = You gave %s your %s.
+POKEMOD_GIVNOGOOD = You can't give pokemon to wild players.
+POKEMOD_GIVNOROOM = %s has too many pokemon already.
+POKEMOD_GIVDUP = %s already has a %s.
+POKEMOD_GIVNOHAS = You don't have a %s to give.
+POKEMOD_WILDLEAVE = %s has left the map.
+POKEMOD_WILDAPPEAR = A wild %s has appeared on the map.
+POKEMOD_WILDARE = You are a wild %s
+POKEMOD_NOWILDS = There are not enough wild pokemon for you to go trainer.(%d/%d)
+POKEMOD_WILDWANDER = A wild %s wandered from the map.
+POKEMOD_WILDJOIN = %s has joined the map.
+POKEMOD_WILDREQ = This server is requiring at least %d wild pokemon. Say /trainer or /wild to switch.
+
+POKEMOD_RESTRICTUSE = This server is restricting who can use %s.
+POKEMOD_SMOG = You walked into smog
+POKEMOD_OTHERTEAM = This is not for your team
+POKEMOD_LEVEL = Level
+
+POKEMOD_TRAINERALRDY = You are already a trainer. Say /wild to change to a wild pokemon.
+POKEMOD_WILDALRDY = You are already a wild pokemon. Say /trainer to change back.
+POKEMOD_WILDDIE = You have already been a wild pokemon. Try again after you die.
+POKEMOD_HELPWITH = For help with PokeMod, say: /pokehelp
+POKEMOD_MARTCLOSE = The PokeMart is closed.
+POKEMOD_RELCANC = Pokemon release canceled.
+POKEMOD_NOTREL = You are not currently releasing anything.
+POKEMOD_WILDSAVE = Wild pokemon cannot save.
+POKEMOD_SWITCHSAME = Cannot switch the same pokemon.
+POKEMOD_SWITCHHAVE = You do not have one or both of the pokemon trying to be switched.
+POKEMOD_SWITCHPC = You must be near Oak or dead to switch pokemon in Oak's PC.
+POKEMOD_SENDCLOSE = You must be near Oak or dead to send pokemon to Oak's PC.
+POKEMOD_RETCLOSE = You must be near Oak or dead to retrieve pokemon from Oak's PC.
+
+POKEMOD_EVOLVING = %s is trying to evolve
+POKEMOD_CANCELEVO = Stopped %s from evolving.
+POKEMOD_ALLOW = Allow
+POKEMOD_ABORT = Abort
+
+
+
+

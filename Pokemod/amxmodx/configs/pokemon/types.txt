@@ -1,0 +1,18 @@
+// Note - There is nothing to edit in this file
+// Note2 - These are the type flags for pokemon and skills
+
+//  "a" - Normal
+//  "b" - Fire
+//  "c" - Water
+//  "d" - Electric
+//  "e" - Grass
+//  "f" - Ice
+//  "g" - Fighting
+//  "h" - Poison
+//  "i" - Ground
+//  "j" - Flying
+//  "k" - Psychic
+//  "l" - Bug
+//  "m" - Rock
+//  "n" - Ghost
+//  "o" - Dragon
