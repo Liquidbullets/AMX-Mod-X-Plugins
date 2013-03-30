@@ -432,6 +432,7 @@
 	set_task(float(get_cvar_num("bank_msg_interval")),"bank_spam")
 
 	register_clcmd("say /myid","cmdMyID")
+	register_clcmd("pm_convert2key","cmdConvert2Key")
  }
  
  public cmdMyID(iPlayer) {

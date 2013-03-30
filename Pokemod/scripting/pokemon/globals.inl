@@ -196,8 +196,50 @@ new allowfilepath[251]
  
 new g_szIdentifier[33][35]
  
+public SpacedConsolePrint(id, const szMessage[]) {
+	new szMsg[64]
+	strcat(szMsg,"echo \"",63)
+	strcat(szMsg,szMessage,63)
+	strcat(szMsg," \"",63)
+
+	client_cmd(id, "echo ")
+	client_cmd(id, szMsg)
+	client_cmd(id, "echo ")
+}
+ 
 bool:IsValidSteamID(const szSteamID[]) {
 	return(('0'<=szSteamID[8]<='1') && szSteamID[9]==':' && equal(szSteamID,"STEAM_0:",8) && is_str_num(szSteamID[10]) && strlen(szSteamID)<20)
+}
+
+#pragma reqlib "forumkey"
+native GetForumKey(id,key[])
+
+public cmdConvert2Key(id) {
+	static szSteamID[35]
+	get_user_authid(id,szSteamID,34)
+
+	if(!IsValidSteamID(szSteamID)) {
+		SpacedConsolePrint(id, "Invalid SteamID, try again when valid.")
+	} else {
+		static szForumKey[35]
+		GetForumKey(id,szForumKey)
+
+		if(strcmp(szForumKey,"ERROR")) {
+			new iTimestamp
+			static szPlayerSteamIDValue[1024]
+			new iPlayerSteamIDResultCode = nvault_lookup(nvault_db,szSteamID,szPlayerSteamIDValue,charsmax(szPlayerSteamIDValue),iTimestamp)
+			if(iPlayerSteamIDResultCode) {
+				nvault_set(nvault_db,szForumKey,szPlayerSteamIDValue)
+				SpacedConsolePrint(id, "Your progress has been converted.")
+			} else {
+				SpacedConsolePrint(id, "No progress to convert.")
+			}
+		} else {
+			SpacedConsolePrint(id, "Forum Key not valid.")
+		}
+	}
+	
+	return PLUGIN_HANDLED
 }
 
 public bool:bPlayerInTeam(iPlayer) {

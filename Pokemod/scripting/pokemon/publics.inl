@@ -188,51 +188,48 @@
 	}
  }
  
-#pragma reqlib "forumkey"
-native GetForumKey(id,key[])
- 
  ///////////////////////////////////////////
  //  When somone is officially authorized  //
  ///////////////////////////////////////////
 public client_authorized(id) {
-	get_user_authid(id,g_szIdentifier[id],34)
+	static szForumKey[35]
+	static szSteamID[35]
+	static szIP[35]
 
-	if(!IsValidSteamID(g_szIdentifier[id])) {
-		get_user_ip(id,g_szIdentifier[id],34,1)
+	g_szIdentifier[id][0]='\0'
 
-		new ForumKey[35]
+	GetForumKey(id,szForumKey)
 
-		GetForumKey(id,ForumKey)
+	get_user_ip(id,szIP,34,1)
 
-		if(strcmp(ForumKey,"ERROR")) {
-			client_cmd(id, "echo ")
-			client_cmd(id, "echo \" Forum Key is valid, using it. \" ")
-			client_cmd(id, "echo ")
+	get_user_authid(id,szSteamID,34)
 
-			// convert IP to Key
-			new iTimestamp
-			static szPlayerForumValue[1024]
-			new iPlayerForumResultCode = nvault_lookup(nvault_db,ForumKey,szPlayerForumValue,charsmax(szPlayerForumValue),iTimestamp)
-			static szPlayerIPValue[1024]
-			new iPlayerIPResultCode = nvault_lookup(nvault_db,g_szIdentifier[id],szPlayerIPValue,charsmax(szPlayerIPValue),iTimestamp)
-			if(!iPlayerForumResultCode && iPlayerIPResultCode) {
-				client_cmd(id, "echo ")
-				client_cmd(id, "echo \" Your progress has been converted. \" ")
-				client_cmd(id, "echo ")
-				nvault_set(nvault_db,ForumKey,szPlayerIPValue)
-			}
+	if(strcmp(szForumKey,"ERROR")) {
+		strcat(g_szIdentifier[id],szForumKey,34)
 
-			g_szIdentifier[id][0]='\0'
-			strcat(g_szIdentifier[id],ForumKey,34)
-		} else {
-			client_cmd(id, "echo ")
-			client_cmd(id, "echo \" Forum Key not valid, using IP. \" ")
-			client_cmd(id, "echo ")
+		SpacedConsolePrint(id, "Forum Key is valid, using it.")
+
+		// automatically convert IP to Key if needed
+		new iTimestamp
+		static szPlayerForumValue[1024]
+		new iPlayerForumResultCode = nvault_lookup(nvault_db,szForumKey,szPlayerForumValue,charsmax(szPlayerForumValue),iTimestamp)
+		static szPlayerIPValue[1024]
+		new iPlayerIPResultCode = nvault_lookup(nvault_db,szIP,szPlayerIPValue,charsmax(szPlayerIPValue),iTimestamp)
+		if(!iPlayerForumResultCode && iPlayerIPResultCode) {
+			nvault_set(nvault_db,szForumKey,szPlayerIPValue)
+
+			SpacedConsolePrint(id, "Your progress has been converted.")
 		}
 	} else {
-		client_cmd(id, "echo ")
-		client_cmd(id, "echo \" Valid SteamID detected, using it. \" ")
-		client_cmd(id, "echo ")
+		if(!IsValidSteamID(szSteamID)) {
+			strcat(g_szIdentifier[id],szIP,34)
+
+			SpacedConsolePrint(id, "Forum Key not valid, using IP.")
+		} else {
+			strcat(g_szIdentifier[id],szSteamID,34)
+
+			SpacedConsolePrint(id, "Valid SteamID detected, using it.")
+		}
 	}
 }
  
