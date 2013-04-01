@@ -1,6 +1,7 @@
-// rA
-// Temporary bans terrorist quiters
 
+// rA -Firippu
+// Temporary bans terrorist quiters
+// Cvars: amx_bantime # // minutes
 
 /***
  * Link to the plugin
@@ -593,7 +594,7 @@ public client_authorized( id ) {
 	new iResultCode = nvault_lookup(iVault,szIdentifier,szValue,charsmax(szValue),iTimestamp);
 
 	if(iResultCode) {
-		if((iTimestamp+g_pBanTime)<iCurrentTime) {
+		if((iTimestamp+(get_pcvar_num(g_pBanTime)*60))<iCurrentTime) {
 			nvault_remove(iVault,szIdentifier);
 			g_bConnected[ id ] = true;
 		} else {
