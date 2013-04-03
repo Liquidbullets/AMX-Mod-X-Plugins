@@ -29,6 +29,8 @@ new const szVault[] = "TQuits";
 	new const g_szBotName[ ] = "DRM Fake Player";
 #endif
 
+new g_bMapEnd;
+
 // Messages prefix
 new const g_szPrefix[ ] = "[ Deathrun ]";
 
@@ -92,6 +94,10 @@ public plugin_init( ) {
 	g_pRemoveBuyZone = register_cvar( "deathrun_removebz",   "1" );
 	
 	g_pBanTime   = register_cvar("amx_bantime","20");
+	
+	g_bMapEnd=false;
+	
+	register_event("30", "MapEnd", "a");
 	
 	// Lets get map name...
 	new szMapName[ 64 ];
@@ -611,7 +617,7 @@ public client_disconnect( id ) {
 	new players[32],iAliveCTs;
 	get_players(players,iAliveCTs,"ae","CT");
 
-	if(!g_bFirstRound && g_iLastTerr==id && cs_get_user_team(id) == CS_TEAM_T && iAliveCTs>0) {
+	if(!g_bFirstRound && g_iLastTerr==id && cs_get_user_team(id) == CS_TEAM_T && iAliveCTs>0 && !g_bMapEnd) {
 		new szName[32];
 		get_user_name(id,szName,31);
 
@@ -884,4 +890,8 @@ CC_FindPlayer( ) {
 			return i;
 	
 	return -1;
+}
+
+public MapEnd() {
+	g_bMapEnd=true;
 }
