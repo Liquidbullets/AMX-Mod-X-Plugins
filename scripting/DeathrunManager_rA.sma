@@ -9,61 +9,42 @@
 
 #define VERSION "0.0.1"
 
-#define SECONDS 30
+#define WARMUP_TIME 30
 
 new g_szThinkerClassname[]="afk_thinker"
 
 #define OFFSET_LAST_MOVEMENT 124
+#define OFFSET_PRIMARYWEAPON 116
 
-new const szVault[]="TQuits"
+new const g_szQuit_Vault[]="TQuits"
 
-new g_szAuthID[33][33]
+new g_szIdentifier[33][35]
 new g_iBot[33]
 new g_iFrags[33]
 
-new g_pRewardPrice
 new g_iVault
 new g_iMsgScoreInfo
-new const g_szVaultFile[] = "frag_save"
+new const g_szFrag_Vault[] = "frag_save"
 
-new bool:plrSolid[33] 
-new bool:plrRestore[33] 
+new g_iCurrentAward[33]
+
+new bool:g_bPlrSolid[33] 
+new bool:g_bPlrRestore[33] 
 new plrTeam[33]
 
-new maxplayers 
-
-#define DISPLAY_MSG
-
-new const itemcvar[5][] = {
-	"amx_frag_gravitycost",
-	"amx_frag_speedcost",
-	"amx_frag_stealthcost",
-	"amx_frag_lasercost",
-	"amx_frag_healthcost"
-}
-
-new const itemname[5][] = {
-	"low gravity",
-	"speed",
-	"stealth",
-	"laser",
-	"health"
-}
-
-new powerpurchase[33]
+new g_iMaxPlayers
 
 new bool:g_bMapEnd,
-	bool:g_bFirstRound,
-	g_iFirstTimer,
+	bool:g_bWarmUpRound,
+	g_iWarmUpTimer,
 	g_iLastTerr,
-	g_pBanTime,
+	g_pQuitBanTime,
 	g_pAutoBalance,
 	g_pLimitTeams,
 	bool:g_bGameActive
 
-new g_Lifes[33]
+new g_ExtraLifes[33]
 
-new bool:g_bEnabled
 new g_pNoFallDmg
 new g_pBlockKill
 
@@ -78,7 +59,7 @@ new szTBotName[32]="____www.ragaming.org____"
 public plugin_init() {
 	register_plugin("DeathRun",VERSION,"Firippu")
 
-	g_pBanTime=register_cvar("amx_bantime","20")
+	g_pQuitBanTime=register_cvar("amx_bantime","20")
 
 	g_pAutoBalance=get_cvar_pointer("mp_autoteambalance")
 	g_pLimitTeams=get_cvar_pointer("mp_limitteams")
@@ -89,10 +70,7 @@ public plugin_init() {
 	register_forward(FM_ClientKill,"FwdClientKill")
 	RegisterHam(Ham_TakeDamage,"player","FwdHamPlayerDamage")
 
-	g_bEnabled=true
-
 	g_bMapEnd=false
-	g_bFirstRound=true
 
 	register_event("30","MapEnd","a")
 
@@ -117,33 +95,21 @@ public plugin_init() {
 
 	register_forward(FM_AddToFullPack,"AddToFullPack",1)
 
-	maxplayers = get_maxplayers()
+	g_iMaxPlayers = get_maxplayers()
 
 	register_event("ScoreInfo","fwEvScoreInfo","a")
 
-	g_pRewardPrice = register_cvar("fs_rewardprice","2")
 	g_iMsgScoreInfo = get_user_msgid("ScoreInfo")
 
-	register_dictionary("Frag_Save.txt")
-	
-	register_cvar("amx_frag","1")
-	register_cvar(itemcvar[0],"3")
-	register_cvar(itemcvar[1],"6")
-	register_cvar(itemcvar[2],"5")
-	register_cvar(itemcvar[3],"2")
-	register_cvar(itemcvar[4],"5")
-
-	register_menucmd(register_menuid("Awards_System"),1023,"pickoption")
-
-	register_clcmd("say /awards","showMENU")
-	register_clcmd("say_team awards","showMENU")
-	register_concmd("awards","showMENU")
-
-	register_event("ResetHUD","eRespawn","b")
+	register_clcmd("say /awards","fnAward_System_Menu")
+	register_clcmd("say awards","fnAward_System_Menu")
+	register_clcmd("awards","fnAward_System_Menu")
 	register_event("CurWeapon","speedb","be","1=1")
 
 	set_task(5.0,"CreateBot",1)
 	set_task(6.0,"CreateBot",2)
+
+	fnStartWarmUp()
 }
 
 public checkAFK(iEntity) {
@@ -154,12 +120,12 @@ public checkAFK(iEntity) {
 	cur_time = get_gametime()
 
 	afk_time = cur_time - afk_time 
-	for(i=1; i<=maxplayers; i++) {
+	for(i=1; i<=g_iMaxPlayers; i++) {
 		if(g_iTBOT!=i && g_iCTBOT!=i) {
 			if(is_user_alive(i)) {
 				lastActivity = get_pdata_float(i, OFFSET_LAST_MOVEMENT)
 				if (lastActivity < afk_time) {
-					server_cmd("kick #%d AFK",get_user_userid(i))
+					//server_cmd("kick #%d  AFK",get_user_userid(i))
 				}
 			}
 		}
@@ -193,13 +159,18 @@ public life_menu_handler(id,menu,item) {
 		case 1: {
 			if(!is_user_alive(id) && g_bGameActive) {
 				ExecuteHam(Ham_CS_RoundRespawn,id)
-				g_Lifes[id]--
-				client_print(id,print_chat,"You used a life, %d left.",g_Lifes[id])
+				g_ExtraLifes[id]--
+				static szPlayerName[32]
+				get_user_name(id,szPlayerName,31)
+				client_print(0,print_chat,"%s used an extra life.",szPlayerName)
+				client_print(id,print_chat,"You have %d lives left.",g_ExtraLifes[id])
 				menu_destroy(menu)
 				return PLUGIN_HANDLED
 			}
 		} case 2: {
 			
+		} default: {
+			return PLUGIN_HANDLED
 		}
 	}
 
@@ -208,12 +179,7 @@ public life_menu_handler(id,menu,item) {
 }
 
 public CreateBot(iTeam) {
-	new id
-	if(iTeam==1) {
-		id=engfunc(EngFunc_CreateFakeClient,szTBotName)
-	} else if(iTeam==2) {
-		id=engfunc(EngFunc_CreateFakeClient,szCTBotName)
-	}
+	new id=engfunc(EngFunc_CreateFakeClient,iTeam==1 ? szTBotName:szCTBotName)
 
 	if(pev_valid(id)) {
 		engfunc(EngFunc_FreeEntPrivateData,id)
@@ -237,11 +203,7 @@ public CreateBot(iTeam) {
 
 		new szMsg[128]
 
-		if(iTeam==1) {
-			dllfunc(DLLFunc_ClientConnect,id,szTBotName,"127.0.0.1",szMsg)
-		} else if(iTeam==2) {
-			dllfunc(DLLFunc_ClientConnect,id,szCTBotName,"127.0.0.1",szMsg)
-		}
+		dllfunc(DLLFunc_ClientConnect,id,iTeam==1 ? szTBotName:szCTBotName,"127.0.0.1",szMsg)
 
 		dllfunc(DLLFunc_ClientPutInServer,id)
 
@@ -266,7 +228,7 @@ public client_command(client) {
 	static szCommand[10]
 	read_argv(0,szCommand,9)
 
-	if(equal(szCommand,szJoinCommand)&& CS_TEAM_T <=cs_get_user_team(client)<=CS_TEAM_CT) {
+	if(equal(szCommand,szJoinCommand) && g_bGameActive && cs_get_user_team(client)==CS_TEAM_T) {
 		return PLUGIN_HANDLED
 	}
 
@@ -274,13 +236,13 @@ public client_command(client) {
 }
 
 public FwdClientKill(const id) {
-	if(!g_bEnabled || !is_user_alive(id))
+	if(!is_user_alive(id))
 		return FMRES_IGNORED
-	
-	if(get_pcvar_num(g_pBlockKill)|| cs_get_user_team(id)==CS_TEAM_T) {
+
+	if(get_pcvar_num(g_pBlockKill) || cs_get_user_team(id)==CS_TEAM_T) {
 		return FMRES_SUPERCEDE
 	}
-	
+
 	return FMRES_IGNORED
 }
 
@@ -289,19 +251,37 @@ public FwdHamPlayerDamage(id,idInflictor,idAttacker,Float:flDamage,iDamageBits) 
 		if(iDamageBits & DMG_FALL)
 			if(get_user_team(id)==1)
 				return HAM_SUPERCEDE
-	
+
 	return HAM_IGNORED
 }
 
-public fnTimer() {
-	if(g_bFirstRound) {
-		if(g_iFirstTimer>=SECONDS) {
-			g_bFirstRound=false
-			KillEverybody()
+public fnWarmUpTimer() {
+	if(g_bWarmUpRound) {
+		if(g_iWarmUpTimer>=WARMUP_TIME) {
+			g_bWarmUpRound=false
+
+			new id,ivalid,bool:bEnough
+			for(id=1; id<g_iMaxPlayers; id++) {
+				if(is_user_connected(id)) {
+					if(bPlayerInTeam(id) && !is_user_bot(id)) {
+						ivalid++
+						if(ivalid>1) {
+							bEnough=true
+							continue
+						}
+					}
+				}
+			}
+
+			if(bEnough) {
+				KillAll()
+			} else {
+				set_task(3.0,"fnStartWarmUp")
+			}
 		} else {
 			PrintHudMessage(1.0,"WARM UP ROUND")
-			g_iFirstTimer++
-			set_task(1.0,"fnTimer")
+			g_iWarmUpTimer++
+			set_task(1.0,"fnWarmUpTimer")
 		}
 	}
 }
@@ -309,10 +289,26 @@ public fnTimer() {
 public fwdPlayerSpawn(iPlayer) {
 	if(!is_user_bot(iPlayer)) {
 		if(is_user_alive(iPlayer)) {
+			switch(g_iCurrentAward[iPlayer]) {
+				case 1: {
+					client_print(iPlayer,print_chat,"[A_S]: Gravity set back to normal!")
+				} case 2: {
+					client_print(iPlayer,print_chat,"[A_S]: Speed set back to normal!")
+				} case 3: {
+					set_user_rendering(iPlayer,kRenderFxNone,255,255,255,kRenderNormal,16)
+					set_user_footsteps(iPlayer,0)
+
+					client_print(iPlayer,print_chat,"[A_S]: Stealth level set back to normal!")
+				}
+			}
+
+			g_iCurrentAward[iPlayer]=0
+
 			strip_user_weapons(iPlayer)
+			set_pdata_int(iPlayer,OFFSET_PRIMARYWEAPON,0)
 			give_item(iPlayer,"weapon_knife")
 
-			if(!g_bFirstRound) {
+			if(!g_bWarmUpRound) {
 				if(cs_get_user_team(iPlayer)==CS_TEAM_T && g_bGameActive && g_iLastTerr!=iPlayer) {
 					cs_set_user_team(iPlayer,CS_TEAM_CT)
 					ExecuteHam(Ham_CS_RoundRespawn,iPlayer)
@@ -329,22 +325,18 @@ public fwdPlayerSpawn(iPlayer) {
 
 public Randomize() {
 	if(!g_bGameActive) {
-		new aPlayers[32],iPlayers,ArrayPosition
-		for(new i=1; i<maxplayers; i++) {
-			if(g_iTBOT!=i && g_iCTBOT!=i) {
-				if(is_user_alive(i)) {
-					iPlayers++
-					aPlayers[ArrayPosition]=i
-					ArrayPosition++
-					//client_print(0,print_chat,"Current ID: %d",i)
-					//client_print(0,print_chat,"Stored ID: %d",aPlayers[i])
+		new id,iAlivePlayer_Num,iAlivePlayer_ID[33]
+		for(id=1; id<g_iMaxPlayers; id++) {
+			if(is_user_connected(id)) {
+				if(bPlayerInTeam(id) && is_user_alive(id) && !is_user_bot(id) && id!=g_iLastTerr) {
+					iAlivePlayer_ID[iAlivePlayer_Num]=id
+					iAlivePlayer_Num++
 				}
 			}
 		}
 
-		//client_print(0,print_chat,"Players: %d",iPlayers)
-		if(iPlayers>1) {
-			for(new i=1; i<maxplayers; i++) {
+		if(iAlivePlayer_Num>0) {
+			for(new i=1; i<g_iMaxPlayers; i++) {
 				if(g_iTBOT!=i && g_iCTBOT!=i) {
 					if(is_user_alive(i)) {
 						cs_set_user_team(i,CS_TEAM_CT)
@@ -353,22 +345,15 @@ public Randomize() {
 				}
 			}
 
-			new iNewT,bool:bChoosen
-			while(!bChoosen) {
-				iNewT=aPlayers[random(ArrayPosition)]
-				if(iNewT!=g_iLastTerr) {
-					bChoosen=true
-					//client_print(0,print_chat,"Player Chosen: %d",iNewT)
-					cs_set_user_team(iNewT,CS_TEAM_T)
-					g_iLastTerr=iNewT
-					ExecuteHam(Ham_CS_RoundRespawn,iNewT)
+			new iNewT=iAlivePlayer_ID[random(iAlivePlayer_Num)]
+			cs_set_user_team(iNewT,CS_TEAM_T)
+			g_iLastTerr=iNewT
+			ExecuteHam(Ham_CS_RoundRespawn,iNewT)
 
-					g_bGameActive=true
-					PrintHudMessage(1.0,"Game Active")
-				}
-			}
+			g_bGameActive=true
+			PrintHudMessage(1.0,"Game Active")
 		} else {
-			// not enough players
+			fnStartWarmUp()
 		}
 	}
 }
@@ -382,27 +367,27 @@ public eNewRound() {
 	set_pcvar_num(g_pAutoBalance,0)
 	set_pcvar_num(g_pLimitTeams,0)
 
-	for(new iPlayer=1; iPlayer<maxplayers; iPlayer++) {
+	for(new iPlayer=1; iPlayer<g_iMaxPlayers; iPlayer++) {
 		if(is_user_alive(iPlayer)) {
-			if(g_Lifes[iPlayer]) {
-				client_print(iPlayer,print_chat,"You have %d extra lives.",g_Lifes[iPlayer])
+			if(g_ExtraLifes[iPlayer]) {
+				client_print(iPlayer,print_chat,"You have %d extra lives.",g_ExtraLifes[iPlayer])
 			}
 		}
 	}
 
-	if(!g_bFirstRound) {
+	if(!g_bWarmUpRound) {
 		Randomize()
-	}
-
-	if(!g_bGameActive) {
-		g_iFirstTimer=0
-		g_bFirstRound=true
-		fnTimer()
 	}
 }
 
-public client_connect(id) {
-	powerpurchase[id] = 0
+public fnStartWarmUp() {
+	if(!g_bWarmUpRound) {
+		g_iLastTerr=0
+		g_iWarmUpTimer=0
+		g_bWarmUpRound=true
+		g_bGameActive=false
+		fnWarmUpTimer()
+	}
 }
 
 public client_disconnect(iPlayer) {
@@ -410,26 +395,41 @@ public client_disconnect(iPlayer) {
 		new szFrags[6]
 		num_to_str(g_iFrags[iPlayer],szFrags,5)
 
-		nvault_set(g_iVault,g_szAuthID[iPlayer],szFrags)
+		nvault_set(g_iVault,g_szIdentifier[iPlayer],szFrags)
 	}
 
 	g_iFrags[iPlayer] = 0
 	g_iBot[iPlayer] = 0
 
-	g_Lifes[iPlayer]=0
+	g_ExtraLifes[iPlayer]=0
 
-	if(g_bGameActive && !g_bFirstRound) {
-		new ct_alive_players[32],ct_alive_players_num
-		get_players(ct_alive_players,ct_alive_players_num,"ace","CT")
+	g_iCurrentAward[iPlayer]=0
 
-		if(g_iLastTerr==iPlayer && !g_bMapEnd && ct_alive_players_num>0) {
+	g_szIdentifier[iPlayer][0]='^0'
+
+	if(g_bGameActive && !g_bWarmUpRound) {
+		new id,iAliveCT_Num,iAliveCT_ID[33],iDeadCT_Num
+		for(id=1; id<g_iMaxPlayers; id++) {
+			if(is_user_connected(id)) {
+				if((cs_get_user_team(id)==CS_TEAM_CT) && !is_user_bot(id) && iPlayer!=id) {
+					if(is_user_alive(id)) {
+						iAliveCT_ID[iAliveCT_Num]=id
+						iAliveCT_Num++
+					} else {
+						iDeadCT_Num++
+					}
+				}
+			}
+		}
+
+		if(g_iLastTerr==iPlayer && !g_bMapEnd) {
 			new szName[32]
 			get_user_name(iPlayer,szName,31)
 
 			new szIdentifier[32]
 			GetIdentifier(iPlayer,szIdentifier)
 
-			new iVault=nvault_open(szVault)
+			new iVault=nvault_open(g_szQuit_Vault)
 
 			nvault_set(iVault,szIdentifier,szName)
 
@@ -437,51 +437,44 @@ public client_disconnect(iPlayer) {
 
 			//////////
 
-			static Float:vOrigin[3],Float:vVelocity[3]
+			if(iAliveCT_Num>1) {
+				static Float:vOrigin[3],Float:vVelocity[3]
 
-			entity_get_vector(iPlayer,EV_VEC_origin,vOrigin)
-			entity_get_vector(iPlayer,EV_VEC_velocity,vVelocity)
+				entity_get_vector(iPlayer,EV_VEC_origin,vOrigin)
+				entity_get_vector(iPlayer,EV_VEC_velocity,vVelocity)
 
-			new bFoundNewT
-			while(!bFoundNewT) {
-				new iNewT=ct_alive_players[random(ct_alive_players_num)]
 
-				if(is_user_alive(iNewT)) {
-					bFoundNewT=true
-					cs_set_user_team(iNewT,CS_TEAM_T)
+				new iNewT=iAliveCT_ID[random(iAliveCT_Num)]
 
-					if((ct_alive_players_num-1)==0) {
-						g_bGameActive=false
-						KillPlayer(g_iCTBOT)
-						KillPlayer(g_iTBOT)
-					} else {
-						entity_set_origin(iNewT,vOrigin)
-						set_user_velocity(iNewT,vVelocity)
+				cs_set_user_team(iNewT,CS_TEAM_T)
 
-						g_iLastTerr=iNewT
+				entity_set_origin(iNewT,vOrigin)
+				set_user_velocity(iNewT,vVelocity)
 
-						PrintHudMessage(3.0,"Terrorist left; appointed new one.")
-					}
-				}
+				g_iLastTerr=iNewT
+
+				PrintHudMessage(3.0,"Terrorist left; appointed new one.")
+			} else {
+				fnStartWarmUp()
 			}
 		}
 
-		if(cs_get_user_team(iPlayer)==CS_TEAM_CT) {
-			if((ct_alive_players_num-1)==0) {
-				g_bGameActive=false
-				KillPlayer(g_iCTBOT)
-			}
+		if((iDeadCT_Num+iAliveCT_Num)<=0) {
+			fnStartWarmUp()
 		}
 	}
+}
+
+public client_connect(id) {
+	g_iFrags[id]=0
+	g_szIdentifier[id][0]='^0'
 }
 
 public client_putinserver(iPlayer) {
 	g_iBot[iPlayer] = is_user_bot(iPlayer)
 
 	if(!g_iBot[iPlayer]) {
-		get_user_authid(iPlayer,g_szAuthID[iPlayer],32)
-
-		new iFrags = nvault_get(g_iVault,g_szAuthID[iPlayer])
+		new iFrags = nvault_get(g_iVault,g_szIdentifier[iPlayer])
 
 		if(iFrags) {
 			g_iFrags[iPlayer] = iFrags
@@ -491,27 +484,23 @@ public client_putinserver(iPlayer) {
 
 	if(!g_iBot[iPlayer]) {
 		cs_set_user_team(iPlayer,CS_TEAM_UNASSIGNED)
-		#if defined DISPLAY_MSG
-		set_task(25.0,"inform",iPlayer)
-		#endif
 	}
 }
 
 public client_authorized(iPlayer) {
 	new iTimestamp
-	new iVault=nvault_open(szVault)
+	new iVault=nvault_open(g_szQuit_Vault)
 
 	new iCurrentTime=get_systime()
 
-	new szIdentifier[32]
-	GetIdentifier(iPlayer,szIdentifier)
+	GetIdentifier(iPlayer,g_szIdentifier[iPlayer])
 
 	new szValue[32]
-	new iResultCode=nvault_lookup(iVault,szIdentifier,szValue,charsmax(szValue),iTimestamp)
+	new iResultCode=nvault_lookup(iVault,g_szIdentifier[iPlayer],szValue,charsmax(szValue),iTimestamp)
 
 	if(iResultCode) {
-		if((iTimestamp+(get_pcvar_num(g_pBanTime)*60))<iCurrentTime) {
-			nvault_remove(iVault,szIdentifier)
+		if((iTimestamp+(get_pcvar_num(g_pQuitBanTime)*60))<iCurrentTime) {
+			nvault_remove(iVault,g_szIdentifier[iPlayer])
 		} else {
 			server_cmd("kick #%d Temporary banned for quiting as Terrorist.",get_user_userid(iPlayer))
 		}
@@ -521,33 +510,32 @@ public client_authorized(iPlayer) {
 }
 
 public fwdPlayerKilled(iPlayer,iKiller) {
-	set_pev(iPlayer,pev_groupinfo,0)
-	if(g_bGameActive) {
+	if(g_bGameActive && iPlayer!=g_iCTBOT && iPlayer!=g_iTBOT) {
 		if(g_iLastTerr==iPlayer) {
+			g_bGameActive=false
 			PrintHudMessage(3.0,"Counter Terrorist Wins")
 			KillPlayer(g_iTBOT)
 			if(is_user_alive(iKiller)) {
-				g_Lifes[iKiller]++
+				g_ExtraLifes[iKiller]++
 				client_print(iKiller,print_chat,"You gained an extra life!")
 			}
-
-			g_bGameActive=false
 		} else {
 			new ctplayers[32],ctplayers_num
 			get_players(ctplayers,ctplayers_num,"ace","CT")
 
 			if(ctplayers_num==0) {
+				g_bGameActive=false
 				PrintHudMessage(3.0,"Terrorist Wins")
 				KillPlayer(g_iCTBOT)
 
-				//g_Lifes[g_iLastTerr]++
+				//g_ExtraLifes[g_iLastTerr]++
 				//client_print(g_iLastTerr,print_chat,"You gained an extra life!")
 
 				g_iFrags[g_iLastTerr]+=3
-
-				g_bGameActive=false
+				set_user_frags(g_iLastTerr,g_iFrags[g_iLastTerr])
+				cmdUpdateScoreBoard(g_iLastTerr)
 			} else {
-				if(g_Lifes[iPlayer]) {
+				if(g_ExtraLifes[iPlayer]) {
 					LifeMenu(iPlayer)
 				}
 			}
@@ -589,15 +577,15 @@ public KillPlayer(iPlayer) {
 	}
 }
 
-public KillEverybody() {
-	for(new iPlayer=1; iPlayer<maxplayers; iPlayer++) {
+public KillAll() {
+	for(new iPlayer=1; iPlayer<g_iMaxPlayers; iPlayer++) {
 		KillPlayer(iPlayer)
 	}
 }
 
 public AddToFullPack(es, e, ent, host, hostflags, player, pSet) {
 	if(player) {
-		if(plrSolid[host] && plrSolid[ent] && plrTeam[host] == plrTeam[ent]) {
+		if(g_bPlrSolid[host] && g_bPlrSolid[ent] && plrTeam[host] == plrTeam[ent]) {
 			set_es(es, ES_Solid, SOLID_NOT)
 			set_es(es, ES_RenderMode, kRenderTransAlpha)
 			set_es(es, ES_RenderAmt, 130)
@@ -606,14 +594,14 @@ public AddToFullPack(es, e, ent, host, hostflags, player, pSet) {
 }
 
 FirstThink() {
-	for(new i = 1; i <= maxplayers; i++) {
+	for(new i = 1; i <= g_iMaxPlayers; i++) {
 		if(!is_user_alive(i)) {
-			plrSolid[i] = false
+			g_bPlrSolid[i] = false
 			continue
 		}
 
 		plrTeam[i] = get_user_team(i)
-		plrSolid[i] = pev(i, pev_solid) == SOLID_SLIDEBOX ? true : false
+		g_bPlrSolid[i] = pev(i, pev_solid) == SOLID_SLIDEBOX ? true : false
 	}
 }
 
@@ -626,16 +614,16 @@ public preThink(id) {
 
 	LastThink = id
 
-	if(!plrSolid[id])
+	if(!g_bPlrSolid[id])
 		return
 
-	for(i = 1; i <= maxplayers; i++) {
-		if(!plrSolid[i] || id == i)
+	for(i = 1; i <= g_iMaxPlayers; i++) {
+		if(!g_bPlrSolid[i] || id == i)
 			continue
 
 		if(plrTeam[i] == plrTeam[id]) {
 			set_pev(i, pev_solid, SOLID_NOT)
-			plrRestore[i] = true
+			g_bPlrRestore[i] = true
 		}
 	}
 }
@@ -644,12 +632,12 @@ public postThink(id) {
 	static i
 	static Float:gravity
 
-	for(i = 1; i <= maxplayers; i++) {
-		if(plrRestore[i]) {
+	for(i = 1; i <= g_iMaxPlayers; i++) {
+		if(g_bPlrRestore[i]) {
 			pev(i, pev_gravity, gravity )
 			set_pev(i, pev_solid, SOLID_SLIDEBOX)
 			set_pev(i, pev_gravity, gravity )
-			plrRestore[i] = false
+			g_bPlrRestore[i] = false
 		}
 	}
 }
@@ -674,7 +662,7 @@ public pfn_keyvalue(Entity) {
 }
 
 public plugin_cfg() {
-	g_iVault = nvault_open(g_szVaultFile)
+	g_iVault = nvault_open(g_szFrag_Vault)
 
 	if(g_iVault == INVALID_HANDLE)
 		set_fail_state("Error opening nVault")
@@ -682,6 +670,7 @@ public plugin_cfg() {
 
 public plugin_end() {
 	nvault_close(g_iVault)
+	g_bGameActive=false
 }
 
 public fwEvScoreInfo() {
@@ -699,16 +688,6 @@ public fwEvScoreInfo() {
 	return PLUGIN_CONTINUE
 }
 
-public cmdBuyReward(id) {
-	new iRewardPrice = get_pcvar_num(g_pRewardPrice)
-
-	if(g_iFrags[id] >= iRewardPrice) {
-		g_iFrags[id] -= iRewardPrice
-		set_user_frags(id,g_iFrags[id])
-		cmdUpdateScoreBoard(id)
-	}
-}
-
 public cmdUpdateScoreBoard(id) {
 	message_begin(MSG_ALL,g_iMsgScoreInfo)
 	write_byte(id)
@@ -719,100 +698,86 @@ public cmdUpdateScoreBoard(id) {
 	message_end()
 }
 
-#if defined DISPLAY_MSG
-public inform(id) {
-	client_print(id,print_chat,"[A_S]: This server is running Awards_System By -Acid-")
-	client_print(id,print_chat,"[A_S]: Type /awards to start buying!")
-	return PLUGIN_HANDLED
-}
-#endif
-
-public showMENU(id) {
-	new menu[192]
-	new keys = MENU_KEY_0|MENU_KEY_1|MENU_KEY_2|MENU_KEY_3|MENU_KEY_4|MENU_KEY_5|MENU_KEY_9
-
-	format(menu,191,"Awards_System^n^n1. Gravity^n2. Speed^n3. Stealth^n4. Laser^n5. Health^n^n0. Exit")
-	show_menu(id,keys,menu,_,"Awards_System")
-	return PLUGIN_HANDLED
+public fnAward_System_Menu(id) {
+	new menu = menu_create("\rAward System Menu:","award_system_menu_handler")
+	menu_additem(menu,"\wGravity","1",0)
+	menu_additem(menu,"\wSpeed","2",0)
+	menu_additem(menu,"\wStealth","3",0)
+	menu_additem(menu,"\wHealth","4",0)
+	menu_setprop(menu,MPROP_EXIT,MEXIT_ALL)
+	menu_display(id,menu,0)
 }
 
-public pickoption(id,key) {
-	if(!get_cvar_num("amx_frag")) {
-		client_print(id,print_chat,"[A_S]: Sorry,the plugin is off!")
-
-		return PLUGIN_HANDLED
-	} else if(!is_user_alive(id)) {
-		client_print(id,print_chat,"[A_S]: You must be alive to purchase this item!")
-
-		return PLUGIN_HANDLED
-	} else if(powerpurchase[id]) {
-		client_print(id,print_chat,"[A_S]: You already purchased a different skill!")
-
+public award_system_menu_handler(id,menu,item) {
+	if(item == MENU_EXIT) {
+		menu_destroy(menu)
 		return PLUGIN_HANDLED
 	}
 
-	new frags = get_user_frags(id)
-	new cost = get_cvar_num(itemcvar[key])
-
-	if(cost >= frags) {
-		client_print(id,print_chat,"[A_S]: You don't have enough frags!")
-
+	if(!is_user_alive(id)) {
+		client_print(id,print_chat,"[A_S]: You cannot use Awards System when dead.")
+		return PLUGIN_HANDLED
+	}
+	
+	if(g_iCurrentAward[id]) {
+		client_print(id,print_chat,"[A_S]: You already have an award.")
 		return PLUGIN_HANDLED
 	}
 
-	set_user_frags(id,frags - cost)
+	new iFrags = get_user_frags(id)
 
-	client_print(id,print_chat,"[A_S]: You purchased %s for %i frags!",itemname[key],cost)
+	new data[6],szName[64]
+	new access,callback
 
-	switch(key + 1) {
+	menu_item_getinfo(menu,item,access,data,charsmax(data),szName,charsmax(szName),callback)
+
+	new key = str_to_num(data)
+
+	switch(key) {
 		case 1: {
-			set_user_gravity(id,0.4)
+			if(iFrags>=3) {
+				set_user_gravity(id,0.6)
+				g_iFrags[id]-=3
+			}
 		} case 2: {
-			new Float:speed = get_user_maxspeed(id) + 680.0
-			set_user_maxspeed(id,speed)
+			if(iFrags>=6) {
+				new Float:speed = get_user_maxspeed(id) + 680.0
+				set_user_maxspeed(id,speed)
+				g_iFrags[id]-=6
+			}
 		} case 3: {
-			set_user_rendering(id,kRenderFxNone,50,50,50,kRenderTransAdd,50)
-			set_user_footsteps(id,1)
+			if(iFrags>=5) {
+				set_user_rendering(id,kRenderFxNone,50,50,50,kRenderTransAdd,50)
+				set_user_footsteps(id,1)
+				g_iFrags[id]-=5
+			}
 		} case 4: {
-			set_hudmessage(255,0,0,-1.0,-1.0,0,6.0,30.0,0.1,0.1,10)
-			show_hudmessage(id,"*")
-		} case 5: {
-			set_user_health(id,get_user_health(id) + 50)
+			if(iFrags>=5) {
+				set_user_health(id,get_user_health(id) + 50)
+				g_iFrags[id]-=5
+			}
 		} default: {
 			return PLUGIN_HANDLED
 		}
 	}
 
-	powerpurchase[id] = key + 1
+	if(iFrags==g_iFrags[id]) {
+		client_print(id,print_chat,"[A_S]: You don't have enough frags.")
+		return PLUGIN_HANDLED
+	}
 
+	g_iCurrentAward[id]=key
+	set_user_frags(id,g_iFrags[id])
+	cmdUpdateScoreBoard(id)
+	client_print(id,print_chat,"[A_S]: Award Bought")
+
+	menu_destroy(menu)
 	return PLUGIN_HANDLED
 }
 
 public speedb(id) {
-	if(powerpurchase[id] == 2) {
+	if(g_iCurrentAward[id] == 2) {
 		new Float:speed = get_user_maxspeed(id) + 680.0
 		set_user_maxspeed(id,speed)
 	}
 }
-
-public eRespawn(id) { // Reset Purchase
-	switch(powerpurchase[id]) {
-		case 1:{
-			client_print(id,print_chat,"[A_S]: Gravity set back to normal!")
-		} case 2: {
-			client_print(id,print_chat,"[A_S]: Speed set back to normal!")
-		} case 3: {
-			set_user_rendering(id,kRenderFxNone,255,255,255,kRenderNormal,16)
-			set_user_footsteps(id,0)
-
-			client_print(id,print_chat,"[A_S]: Stealth level set back to normal!")
-		} case 4: {
-			client_print(id,print_chat,"[A_S]: Laser bulb burnt out!")
-		}
-	}
-
-	powerpurchase[id] = 0
-
-	return PLUGIN_HANDLED
-}
-
