@@ -6,15 +6,24 @@
 #include <dhudmessage>
 #include <cstrike>
 #include <fakemeta>
+#include <xs>
 
 #define VERSION "0.0.1"
 
 #define WARMUP_TIME 30
 
-new g_szThinkerClassname[]="afk_thinker"
-
 #define OFFSET_LAST_MOVEMENT 124
 #define OFFSET_PRIMARYWEAPON 116
+
+#pragma reqlib "GHW_NextMap"
+native iGHW_MapChanging()
+#pragma reqlib "AMX_NextMap"
+native iAMX_MapChanging()
+#pragma reqlib "AMXMenu_NextMap"
+native iAMXMenu_MapChanging()
+
+
+new g_szThinkerClassname[]="afk_thinker"
 
 new const g_szQuit_Vault[]="TQuits"
 
@@ -29,8 +38,11 @@ new g_iCurrentAward[33]
 
 new g_iMaxPlayers
 
-new bool:g_bMapEnd,
-	bool:g_bWarmUpRound,
+new Float:playerDelay[33]
+
+new iAlive[33]
+
+new bool:g_bWarmUpRound,
 	g_iWarmUpTimer,
 	g_iLastTerr,
 	g_pQuitBanTime,
@@ -39,9 +51,6 @@ new bool:g_bMapEnd,
 	bool:g_bGameActive
 
 new g_ExtraLifes[33]
-
-new g_pNoFallDmg
-new g_pBlockKill
 
 new g_afkTime
 
@@ -56,15 +65,8 @@ public plugin_init() {
 	g_pAutoBalance=get_cvar_pointer("mp_autoteambalance")
 	g_pLimitTeams=get_cvar_pointer("mp_limitteams")
 
-	g_pNoFallDmg=register_cvar("deathrun_terrnfd","1")
-	g_pBlockKill=register_cvar("deathrun_blockkill","1")
-
 	register_forward(FM_ClientKill,"FwdClientKill")
 	RegisterHam(Ham_TakeDamage,"player","FwdHamPlayerDamage")
-
-	g_bMapEnd=false
-
-	register_event("30","MapEnd","a")
 
 	RegisterHam(Ham_Killed,"player","fwdPlayerKilled",1)
 	RegisterHam(Ham_Spawn,"player","fwdPlayerSpawn",1)
@@ -96,6 +98,22 @@ public plugin_init() {
 	set_task(5.0,"CreateBot",1)
 	set_task(6.0,"CreateBot",2)
 
+	
+	
+	
+	// Register: Forward
+	register_forward(FM_PlayerPreThink, "preThink")
+	register_forward(FM_PlayerPostThink, "postThink")
+	
+	// Register: Ham
+	RegisterHam(Ham_Touch, "func_door", "Ham_Semiclip_Touched", 1)
+	RegisterHam(Ham_Touch, "func_door_rotating", "Ham_Semiclip_Touched", 1)
+	RegisterHam(Ham_Touch, "func_train", "Ham_Semiclip_Touched", 1)
+	RegisterHam(Ham_Touch, "func_rotating", "Ham_Semiclip_Touched", 1)
+	RegisterHam(Ham_Touch, "func_tank", "Ham_Semiclip_Touched", 1)
+	
+	
+	
 	StartWarmUp()
 }
 
@@ -225,7 +243,7 @@ public FwdClientKill(const id) {
 	if(!is_user_alive(id))
 		return FMRES_IGNORED
 
-	if(get_pcvar_num(g_pBlockKill) || cs_get_user_team(id)==CS_TEAM_T) {
+	if(cs_get_user_team(id)==CS_TEAM_T) {
 		return FMRES_SUPERCEDE
 	}
 
@@ -233,18 +251,66 @@ public FwdClientKill(const id) {
 }
 
 public FwdHamPlayerDamage(id,idInflictor,idAttacker,Float:flDamage,iDamageBits) {
-	if(get_pcvar_num(g_pNoFallDmg)) {
-		if(iDamageBits & DMG_FALL) {
-			if(get_user_team(id)==1) {
-				return HAM_SUPERCEDE
-			}
+	static szPlayerName[32]
+	get_user_name(id,szPlayerName,31)
+
+	if(iDamageBits & DMG_FALL) {
+		//client_print(0,print_chat,"DEBUG: %s hurt by DMG_FALL",szPlayerName)
+		if(get_user_team(id)==1) {
+			return HAM_SUPERCEDE
 		}
 	}
-
+/*
 	if(iDamageBits & DMG_GENERIC) {
-		return HAM_SUPERCEDE
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_GENERIC",szPlayerName)
+	} else if(iDamageBits & DMG_CRUSH) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_CRUSH",szPlayerName)
+	} else if(iDamageBits & DMG_BULLET) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_BULLET",szPlayerName)
+	} else if(iDamageBits & DMG_SLASH) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_SLASH",szPlayerName)
+	} else if(iDamageBits & DMG_BURN) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_BURN",szPlayerName)
+	} else if(iDamageBits & DMG_FREEZE) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_FREEZE",szPlayerName)
+	} else if(iDamageBits & DMG_BLAST) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_BLAST",szPlayerName)
+	} else if(iDamageBits & DMG_CLUB) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_CLUB",szPlayerName)
+	} else if(iDamageBits & DMG_SHOCK) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_SHOCK",szPlayerName)
+	} else if(iDamageBits & DMG_SONIC) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_SONIC",szPlayerName)
+	} else if(iDamageBits & DMG_ENERGYBEAM) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_ENERGYBEAM",szPlayerName)
+	} else if(iDamageBits & DMG_NEVERGIB) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_NEVERGIB",szPlayerName)
+	} else if(iDamageBits & DMG_ALWAYSGIB) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_ALWAYSGIB",szPlayerName)
+	} else if(iDamageBits & DMG_DROWN) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_DROWN",szPlayerName)
+	} else if(iDamageBits & DMG_TIMEBASED) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_TIMEBASED",szPlayerName)
+	} else if(iDamageBits & DMG_PARALYZE) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_PARALYZE",szPlayerName)
+	} else if(iDamageBits & DMG_NERVEGAS) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_NERVEGAS",szPlayerName)
+	} else if(iDamageBits & DMG_POISON) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_POISON",szPlayerName)
+	} else if(iDamageBits & DMG_RADIATION) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_RADIATION",szPlayerName)
+	} else if(iDamageBits & DMG_DROWNRECOVER) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_DROWNRECOVER",szPlayerName)
+	} else if(iDamageBits & DMG_ACID) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_ACID",szPlayerName)
+	} else if(iDamageBits & DMG_SLOWBURN) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_SLOWBURN",szPlayerName)
+	} else if(iDamageBits & DMG_SLOWFREEZE) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_SLOWFREEZE",szPlayerName)
+	} else if(iDamageBits & DMG_MORTAR) {
+		client_print(0,print_chat,"DEBUG: %s hurt by DMG_MORTAR",szPlayerName)
 	}
-
+*/
 	return HAM_IGNORED
 }
 
@@ -297,6 +363,15 @@ public fwdPlayerSpawn(iPlayer) {
 
 			g_iCurrentAward[iPlayer]=0
 
+			
+			
+			
+			
+			iAlive[iPlayer]=true
+			set_pev(iPlayer, pev_solid, SOLID_SLIDEBOX)
+
+			
+			
 			strip_user_weapons(iPlayer)
 			set_pdata_int(iPlayer,OFFSET_PRIMARYWEAPON,0)
 			give_item(iPlayer,"weapon_knife")
@@ -398,6 +473,8 @@ public client_disconnect(iPlayer) {
 	g_iCurrentAward[iPlayer]=0
 
 	g_szIdentifier[iPlayer][0]='^0'
+	
+	iAlive[iPlayer]=false
 
 	if(g_bGameActive && !g_bWarmUpRound) {
 		new id,iAliveCT_Num,iAliveCT_ID[33],iDeadCT_Num
@@ -414,7 +491,7 @@ public client_disconnect(iPlayer) {
 			}
 		}
 
-		if(g_iLastTerr==iPlayer && !g_bMapEnd) {
+		if(g_iLastTerr==iPlayer && !iAMX_MapChanging() && !iGHW_MapChanging() && !iAMXMenu_MapChanging() && get_timeleft()>10) {
 			new szName[32]
 			get_user_name(iPlayer,szName,31)
 
@@ -443,6 +520,12 @@ public client_disconnect(iPlayer) {
 				entity_set_origin(iNewT,vOrigin)
 				set_user_velocity(iNewT,vVelocity)
 
+				
+				
+
+				set_pev(iNewT, pev_solid, SOLID_SLIDEBOX)
+				
+				
 				g_iLastTerr=iNewT
 
 				PrintHudMessage(3.0,"Terrorist left; appointed new one.")
@@ -451,8 +534,12 @@ public client_disconnect(iPlayer) {
 			}
 		}
 
-		if((iDeadCT_Num+iAliveCT_Num)<=0) {
-			StartWarmUp()
+		if(iAliveCT_Num<=0) {
+			if(iDeadCT_Num<=0) {
+				StartWarmUp()
+			} else {
+				KillPlayer(g_iCTBOT)
+			}
 		}
 	}
 }
@@ -497,13 +584,14 @@ public client_authorized(iPlayer) {
 	nvault_close(iVault)
 }
 
-public fwdPlayerKilled(iPlayer,iKiller) {
-	if(g_bGameActive && iPlayer!=g_iCTBOT && iPlayer!=g_iTBOT) {
-		if(g_iLastTerr==iPlayer) {
+public fwdPlayerKilled(iVictim,iKiller) {
+	iAlive[iVictim]=false
+	if(g_bGameActive && iVictim!=g_iCTBOT && iVictim!=g_iTBOT) {
+		if(g_iLastTerr==iVictim) {
 			g_bGameActive=false
 			PrintHudMessage(3.0,"Counter Terrorist Wins")
 			KillPlayer(g_iTBOT)
-			if(is_user_alive(iKiller)) {
+			if(iAlive[iKiller]) {
 				g_ExtraLifes[iKiller]++
 				client_print(iKiller,print_chat,"You gained an extra life!")
 			}
@@ -523,8 +611,8 @@ public fwdPlayerKilled(iPlayer,iKiller) {
 				set_user_frags(g_iLastTerr,g_iFrags[g_iLastTerr])
 				cmdUpdateScoreBoard(g_iLastTerr)
 			} else {
-				if(g_ExtraLifes[iPlayer]) {
-					LifeMenu(iPlayer)
+				if(g_ExtraLifes[iVictim]) {
+					LifeMenu(iVictim)
 				}
 			}
 		}
@@ -541,11 +629,6 @@ public GetIdentifier(iPlayer,szIdentifier[]) {
 
 bool:IsValidSteamID(const szSteamID[]) {
 	return(('0'<=szSteamID[8]<='1')&& szSteamID[9]==':' && equal(szSteamID,"STEAM_0:",8)&& is_str_num(szSteamID[10])&& strlen(szSteamID)<20)
-}
-
-public MapEnd() {
-	g_bMapEnd=true
-	g_bGameActive=false
 }
 
 public bool:bPlayerInTeam(iPlayer) {
@@ -709,4 +792,72 @@ public speedb(id) {
 		new Float:speed = get_user_maxspeed(id) + 400.0
 		set_user_maxspeed(id,speed)
 	}
+}
+
+public preThink(id) {
+	if(g_iLastTerr==id)
+		return
+		
+	if(!iAlive[id])
+		return
+		
+	set_pev(id, pev_solid, SOLID_SLIDEBOX)
+}
+
+public postThink(id) {
+	if(g_iLastTerr==id)
+		return
+
+	if(!iAlive[id])
+		return
+		
+	if(!is_wall_between_points(id,g_iLastTerr)) {
+		set_pev(id, pev_solid, SOLID_NOT)
+	}
+}
+
+public Ham_Semiclip_Touched(entity, id) {
+	if(pev_valid(entity) && iAlive[id]) {
+		new Float:flGametime = get_gametime()
+		if(playerDelay[id] > flGametime)
+			return
+			
+		playerDelay[id] = flGametime + 1.0
+		
+		new Float:flOrigin[3]
+		pev(id, pev_origin, flOrigin)
+		
+		if(!is_hull_vacant(flOrigin, pev(id, pev_flags) & FL_DUCKING ? HULL_HEAD : HULL_HUMAN, id)) {
+			ExecuteHamB(Ham_TakeDamage, id, entity, entity, 100.0, DMG_CRUSH)
+		}
+	}
+}
+
+stock bool:is_hull_vacant(const Float:origin[3], hull,id) {
+	static tr
+	engfunc(EngFunc_TraceHull, origin, origin, 0, hull, id, tr)
+	if (!get_tr2(tr, TR_StartSolid) || !get_tr2(tr, TR_AllSolid)) //get_tr2(tr, TR_InOpen))
+		return true
+	
+	return false
+}
+
+stock is_wall_between_points(id, entity)
+{
+	if(!iAlive[entity])
+		return 0
+	
+	new ptr = create_tr2()
+ 
+	new Float:start[3], Float:end[3], Float:endpos[3]
+	pev(id, pev_origin, start)
+	pev(entity, pev_origin, end)
+	
+	engfunc(EngFunc_TraceLine, start, end, IGNORE_MONSTERS, id, ptr)
+ 
+	get_tr2(ptr, TR_vecEndPos, endpos)
+	
+	free_tr2(ptr)
+	
+	return xs_vec_equal(end, endpos)
 }
