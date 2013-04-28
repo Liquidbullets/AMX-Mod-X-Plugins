@@ -405,7 +405,7 @@
 	register_cvar("bank_state","1")
 	register_cvar("bank_min_players","2")
 	register_cvar("bank_restrict","0") // 0 = All user can use the bank 1 = Only users defined in file
-	register_cvar("bank_interest_rounds","15")
+	register_cvar("bank_interest_rounds","10")
 	register_cvar("bank_interest_rate","0.01")
 	register_cvar("bank_fees_base","0")  //Base bank fee in $
 	register_cvar("bank_fees_increase","0") //Added to the base fee for each transaction in a round
