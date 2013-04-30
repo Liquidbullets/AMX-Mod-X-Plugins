@@ -57,7 +57,7 @@
  //should players receive the same ammount of xp as the one they catch
 	// 1 - when someone catches a level 32 pidgey, they will receive a level 32 pidgey
 	// 0 - when someone catches a level 32 pidgey, they will receive a level 1 pidgey
- #define POKEMON_CATCH_XP   0
+ #define POKEMON_CATCH_XP   1
 
  //if a pokemon loses experience to below when it evolved, does it un-evolve
  #define POKEMON_UNEVOLVE   0
@@ -102,9 +102,9 @@
  #define AUTO_ITEMS         2
 
  //do players awaken if they are damaged through weapons in-game
- #define DAMAGE_AWAKEN      0
+ #define DAMAGE_AWAKEN      1
  //do players awaken if they are damaged through pokemon damage
- #define POKEDAMAGE_AWAKEN  0
+ #define POKEDAMAGE_AWAKEN  1
 
  //use the pokerank system? (1=yes 0=no)
  #define POKERANK_SYSTEM    1
@@ -177,7 +177,7 @@
  //if a special pokemon is going to be in a pokeball on the ground,
 	//this is the chance out of 100 that it will stay a special pokemon.
 	//set to 0 for no special pokemon on ground
- #define POKEBALL_SPECIAL   80
+ #define POKEBALL_SPECIAL   10
 
  //how many pokeballs to spawn at the spawns
  #define POKEBALL_NUMBER    5
@@ -186,7 +186,7 @@
  #define POKEBALL_RESPAWN   1
 
  //block player chat messages dealing with pokemod? (1=yes, 0=no)
- #define CHAT_SPAM          1
+ #define CHAT_SPAM          0
 
  // How rare candy items work -
 	//	1 - add a level to the current pokemon (does not save to pokemon)
@@ -218,7 +218,7 @@
  //how many rounds should go by without saving
 	//if set to 0, round saving will not occur
 	//if set to a negative number, random players will save each round (the number is how many players will save)
- #define SAVE_ROUNDS        -3
+ #define SAVE_ROUNDS        -5
 
  //time that players need to wait inbetween saving, this will prevent saving happening a lot and creating lag
  #define SAVE_SPAM          60.0
